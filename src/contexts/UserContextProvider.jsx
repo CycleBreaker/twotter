@@ -9,7 +9,7 @@ export default function UserContextProvider(props) {
     currentUserInfo,
     launchLoginProcess,
     logout,
-    updateNameOrBio,
+    updateNameOrBioOrImages,
     getFollowingList,
   } = userStorage();
   return (
@@ -19,7 +19,7 @@ export default function UserContextProvider(props) {
         currentUserInfo,
         launchLoginProcess,
         logout,
-        updateNameOrBio,
+        updateNameOrBioOrImages,
         getFollowingList,
       }}
     >

@@ -1,12 +1,3 @@
-//Firebase
-import {
-  collection,
-  query,
-  orderBy,
-  startAfter,
-  limit,
-  getDocs,
-} from "firebase/firestore";
 //App components
 import TwootComposer from "../components/TwootComposer";
 import Feed from "../components/Feed";

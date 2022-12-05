@@ -1,4 +1,6 @@
 import { useEffect } from "react";
+//React Router
+import { Link } from "react-router-dom";
 //App components
 import { dateFormatWithTime } from "../config";
 import { textInputHook } from "../hooks";
@@ -10,12 +12,12 @@ import { AiFillDelete } from "react-icons/ai";
 import { RiSendPlane2Fill } from "react-icons/ri";
 import { IoMdCloseCircle } from "react-icons/io";
 
-import OlyaAva from "../assets/ava-1.png";
-
 export default function SingleTwoot(props) {
   const {
     id,
     author,
+    avatar,
+    authorId,
     content,
     date,
     likes,
@@ -45,13 +47,15 @@ export default function SingleTwoot(props) {
     <>
       <div className="flex">
         <img
-          src={OlyaAva}
+          src={avatar}
           alt="userpic"
           className="rounded-[50%] h-20 w-20 p-1 shadow-[5px_5px_5px_1px_rgba(0,0,0,0.3),_-5px_-5px_5px_1px_rgba(255,255,255,0.5)] dark:shadow-[5px_5px_5px_1px_rgba(0,0,0,0.5),_-5px_-5px_5px_1px_rgba(255,255,255,0.2)]"
         />
         <div className="pl-5 w-full">
           <div className="flex justify-between w-auto">
-            <div className="font-bold">{author}</div>
+            <Link to={"/" + authorId}>
+              <div className="font-bold">{author}</div>
+            </Link>
             <div>
               {wasEdited ? "edited " : null}
               {new Intl.DateTimeFormat("en-IE", dateFormatWithTime).format(

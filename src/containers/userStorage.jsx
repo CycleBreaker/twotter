@@ -18,6 +18,10 @@ import { newUserBoilerplate } from "../config";
 export default function userStorage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [currentUserInfo, setCurrentUserInfo] = useState(null);
+  const [currentUserImages, setCurrentUserImages] = useState({
+    avatar: "gs://twotter-fde64.appspot.com/avatar-none.jpg",
+    background: "gs://twotter-fde64.appspot.com/background-none.jpg",
+  });
 
   const launchLoginProcess = async function () {
     let credentials;
@@ -27,14 +31,18 @@ export default function userStorage() {
       throw error;
     } finally {
       const additionalUserInfo = getAdditionalUserInfo(credentials);
-      console.log(credentials);
-      console.log(additionalUserInfo);
       if (additionalUserInfo.isNewUser) {
-        await setDoc(doc(database, "users", credentials.user.uid), {
-          ...newUserBoilerplate,
-          name: credentials.user.displayName,
-          userpic: credentials.user.photoURL,
-        });
+        setTimeout(async () => {
+          await setDoc(doc(database, "users", credentials.user.uid), {
+            ...newUserBoilerplate,
+            name: credentials.user.displayName,
+            userpic: credentials.user.photoURL,
+          });
+          setCurrentUserImages({
+            ...currentUserImages,
+            userpic: credentials.user.photoURL,
+          });
+        }, 300);
       }
     }
   };
@@ -43,6 +51,7 @@ export default function userStorage() {
     await getDoc(doc(database, "users", curUser))
       .then((res) => {
         setCurrentUserInfo({
+          ...currentUserInfo,
           name: res.data().name,
           bio: res.data().bio,
         });
@@ -72,7 +81,7 @@ export default function userStorage() {
     }
   };
 
-  const updateNameOrBio = async function (type, text) {
+  const updateNameOrBioOrImages = async function (type, text) {
     await updateDoc(doc(database, "users", currentUser), { [type]: text })
       .then((res) => refreshNameAndBio(currentUser))
       .catch((err) => {
@@ -95,9 +104,10 @@ export default function userStorage() {
   return {
     currentUser,
     currentUserInfo,
+    currentUserImages,
     launchLoginProcess,
     logout,
-    updateNameOrBio,
+    updateNameOrBioOrImages,
     getFollowingList,
   };
 }

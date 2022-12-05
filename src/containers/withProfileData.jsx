@@ -6,14 +6,22 @@ import {
   query,
   orderBy,
   limit,
+  startAfter,
   getDocs,
   doc,
   getDoc,
   updateDoc,
+  onSnapshot,
 } from "firebase/firestore";
-import { database } from "../firebaseConfig";
+import { database, storage } from "../firebaseConfig";
+import { ref, getDownloadURL } from "firebase/storage";
 //Contexts
 import { UserContext } from "../contexts/UserContextProvider";
+//App components
+import { twotsToDownloadAtOnce } from "../config";
+//Boilerplate images
+import noAvatar from "../assets/avatar-none.jpg";
+import noCover from "../assets/background-none.jpg";
 
 export default function withProfileData(Component) {
   return function withProfileData(props) {
@@ -22,25 +30,45 @@ export default function withProfileData(Component) {
 
     const [isTheSameUser, setIsTheSameUser] = useState(false);
     const [isFollowing, setIsFollowing] = useState(false);
+    const [profileAvatar, setProfileAvatar] = useState(noAvatar);
+    const [profileCover, setProfileCover] = useState(noCover);
+    const [twots, setTwots] = useState([]);
+    const [noTwotsLeft, setNoTwotsLeft] = useState(false);
 
-    const twotsToDownloadAtOnce = 10;
-    const [twotsDownloaded, setTwotsDownloaded] = useState(
-      twotsToDownloadAtOnce
-    );
+    const [lastLoadedTwot, setLastLoadedTwot] = useState(null);
 
-    const getTwots = async function (userId) {
+    const loadMoreTwots = async function () {
       const twotArray = new Array();
-      const q = query(
-        collection(database, userId),
-        orderBy("date", "desc"),
-        limit(twotsDownloaded)
-      );
-      await getDocs(q)
-        .then((res) =>
-          res.forEach((doc) => twotArray.push({ id: doc.id, ...doc.data() }))
-        )
-        .catch((err) => console.log(err));
-      return twotArray;
+      const userRef = await collection(database, userId);
+      let q = null;
+      if (lastLoadedTwot === null) {
+        q = query(
+          userRef,
+          orderBy("date", "desc"),
+          limit(twotsToDownloadAtOnce)
+        );
+      } else {
+        q = query(
+          userRef,
+          orderBy("date", "desc"),
+          startAfter(lastLoadedTwot),
+          limit(twotsToDownloadAtOnce)
+        );
+      }
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach((doc) => {
+        twotArray.push({ id: doc.id, ...doc.data() });
+        setLastLoadedTwot(querySnapshot.docs[querySnapshot.docs.length - 1]);
+      });
+      if (querySnapshot.size === 0) {
+        setNoTwotsLeft(true);
+      }
+      setTwots([...twots, ...twotArray]);
+    };
+
+    const deleteTwotFromState = function (id) {
+      const updatedTwotList = twots.filter((tw) => tw.id !== id);
+      setTwots(updatedTwotList);
     };
 
     const handleFollow = async function () {
@@ -54,7 +82,6 @@ export default function withProfileData(Component) {
       } else {
         copiedFollowList.push(userId);
       }
-      console.log(copiedFollowList);
       await updateDoc(userDocRef, {
         following: copiedFollowList,
       }).then(() => {
@@ -77,6 +104,29 @@ export default function withProfileData(Component) {
     };
 
     useEffect(() => {
+      const avatarRef = ref(storage, userId + "/avatar");
+      const avatarUrl = getDownloadURL(avatarRef).then(
+        (url) => {
+          setProfileAvatar(url);
+        },
+        (err) => console.log(err)
+      );
+      const coverRef = ref(storage, userId + "/cover");
+      const coverUrl = getDownloadURL(coverRef).then(
+        (url) => {
+          setProfileCover(url);
+        },
+        (err) => console.log(err)
+      );
+      const unsubscribe = onSnapshot(doc(database, "users", userId), (doc) => {
+        console.log(doc);
+        setProfileAvatar(doc.data().userpic);
+        setProfileCover(doc.data().userBackground);
+      });
+      return () => unsubscribe();
+    }, []);
+
+    useEffect(() => {
       checkIfFollowing();
     });
 
@@ -90,11 +140,20 @@ export default function withProfileData(Component) {
 
     return (
       <Component
-        {...props}
-        getTwots={getTwots}
+        twots={twots}
+        loadMoreTwots={loadMoreTwots}
+        emptyMessage={
+          isTheSameUser
+            ? "Post something to fill your feed."
+            : "This person hasn't twotted anything yet."
+        }
+        noTwotsLeft={noTwotsLeft}
         isTheSameUser={isTheSameUser}
         handleFollow={handleFollow}
         isFollowing={isFollowing}
+        deleteTwotFromState={deleteTwotFromState}
+        profileAvatar={profileAvatar}
+        profileCover={profileCover}
       />
     );
   };

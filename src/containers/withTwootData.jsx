@@ -1,26 +1,24 @@
 import { useState, useContext, useEffect } from "react";
 //Firebase
 import { database } from "../firebaseConfig";
-import {
-  doc,
-  updateDoc,
-  onSnapshot,
-  getDoc,
-  Timestamp,
-  deleteDoc,
-} from "firebase/firestore";
+import { doc, updateDoc, getDoc, deleteDoc } from "firebase/firestore";
+import { storage } from "../firebaseConfig";
+import { ref, getDownloadURL } from "firebase/storage";
 //App components
 import { getUserData } from "../utilities";
 import { UserContext } from "../contexts/UserContextProvider";
 import { generateTimestamp } from "../utilities";
+//Boilerplate images
+import noAvatar from "../assets/avatar-none.jpg";
 
 export default function withTwootData(Component) {
   return function withTwootData(props) {
-    const { twoot, deleteTwot, isTheSameUser } = props;
+    const { twoot, deleteTwotFromState, isTheSameUser } = props;
     const { id, author, content, date, liked, wasEdited } = twoot;
     const { currentUser } = useContext(UserContext);
 
     const [userName, setUserName] = useState("Loading data...");
+    const [avatar, setAvatar] = useState(noAvatar);
 
     const [isLiked, setIsLiked] = useState(false);
     const [actualContent, setActualContent] = useState("");
@@ -54,7 +52,14 @@ export default function withTwootData(Component) {
         currentLikedList.push(currentUser);
       }
       await updateDoc(twootRef, { liked: currentLikedList })
-        .then(() => setIsLiked(!isLiked))
+        .then(() => {
+          setIsLiked(!isLiked);
+          if (isLiked) {
+            setLikes(likes - 1);
+          } else {
+            setLikes(likes + 1);
+          }
+        })
         .catch((err) => console.log(err));
     };
 
@@ -78,37 +83,32 @@ export default function withTwootData(Component) {
     const deleteTwoot = async function () {
       const twootRef = doc(database, author, id);
       await deleteDoc(twootRef)
-        .then((res) => deleteTwot(id))
+        .then((res) => deleteTwotFromState(id))
         .catch((err) => console.log(err));
     };
 
     useEffect(() => {
       setActualContent(content);
-      setLikes(liked.length);
-      let unsubscribe = null;
-      const twootRef = doc(database, author, id);
       checkIfLiked();
       getUserData(author).then((res) => setUserName(res.name));
-      async function subscribeToTwootUpdates() {
-        unsubscribe = await onSnapshot(twootRef, (doc) => {
-          setActualContent(doc.data().content);
-          setLikes(doc.data().liked.length);
-        });
-      }
-      subscribeToTwootUpdates();
-      return () => {
-        if (typeof unsubscribe === "function") {
-          unsubscribe();
-        }
-      };
+
+      const avatarRef = ref(storage, author + "/avatar");
+      const avatarUrl = getDownloadURL(avatarRef).then(
+        (url) => {
+          setAvatar(url);
+        },
+        (err) => console.log(err)
+      );
     }, []);
 
     return (
       <Component
+        authorId={author}
         author={userName}
+        avatar={avatar}
         content={actualContent}
         date={date}
-        like={like}
+        like={currentUser === null ? null : like}
         likes={likes}
         isLiked={isLiked}
         isTheSameUser={isTheSameUser}

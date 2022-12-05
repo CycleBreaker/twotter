@@ -32,3 +32,19 @@
     rgba(0, 0, 0, 0) 75%
   );
 }
+
+.fileInput {
+  margin-right: 10px;
+  height: 40px;
+  width: 85px;
+}
+.fileInput::-webkit-file-upload-button {
+  visibility: hidden;
+}
+.fileInput::before {
+  content: "Browse";
+  display: inline-block;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  transform: translateY(-9px);
+}

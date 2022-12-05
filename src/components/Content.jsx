@@ -7,6 +7,7 @@ import { ThemeContext } from "../contexts/ThemeContextProvider";
 import Header from "./Header";
 import Home from "../pages/Home";
 import Profile from "../pages/Profile";
+import Discover from "../pages/Discover";
 import SettingsModal from "./SettingsModal";
 import withProfileData from "../containers/withProfileData";
 import withSettingsData from "../containers/withSettingsData";
@@ -26,6 +27,7 @@ export default function Content() {
       <div className="bg-backgroundLight dark:bg-backgroundDark text-textLight dark:text-textDark w-full min-h-screen h-full">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/discover" element={<Discover />} />
           <Route path={`/:userId`} element={<ProfileWithData />} />
         </Routes>
       </div>

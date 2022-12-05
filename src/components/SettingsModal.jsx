@@ -1,13 +1,17 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 //Contexts
 import { UserContext } from "../contexts/UserContextProvider";
 import { ThemeContext } from "../contexts/ThemeContextProvider";
 //App components
 import LoginButton from "./LoginButton";
 import { textInputHook } from "../hooks";
+//Icons
+import { ImCheckmark } from "react-icons/im";
 
 export default function SettingsModal(props) {
-  const { updateUserInfo } = props;
+  const { updateUserInfo, selectImage } = props;
+  const [avatarSelected, setAvatarSelected] = useState(false);
+  const [coverSelected, setCoverSelected] = useState(false);
   //Contexts
   const { currentUser, currentUserInfo, logout } = useContext(UserContext);
   const { lightTheme, switchTheme, switchSettingsPopupOn } =
@@ -20,6 +24,15 @@ export default function SettingsModal(props) {
     currentUserInfo ? currentUserInfo.bio : ""
   );
 
+  const selectAvatar = (e) => {
+    setAvatarSelected(true);
+    selectImage(e.target.files[0], "avatar");
+  };
+  const selectCover = (e) => {
+    setCoverSelected(true);
+    selectImage(e.target.files[0], "cover");
+  };
+
   const preventWindowClosing = (e) => e.stopPropagation();
 
   const saveAndClose = function () {
@@ -28,8 +41,12 @@ export default function SettingsModal(props) {
   };
 
   useEffect(() => {
-    inputTextName({ target: { value: currentUserInfo.name } });
-    inputTextBio({ target: { value: currentUserInfo.bio } });
+    inputTextName({
+      target: { value: currentUserInfo.name ? currentUserInfo.name : "" },
+    });
+    inputTextBio({
+      target: { value: currentUserInfo.bio ? currentUserInfo.bio : "" },
+    });
   }, [currentUserInfo]);
 
   return (
@@ -67,7 +84,35 @@ export default function SettingsModal(props) {
                 </div>
                 <div className="flex pt-3 justify-between">
                   <p className="pr-3 translate-y-3">Your profile pic:</p>
-                  <div className="roundButton">Browse</div>
+                  <form className="flex">
+                    {avatarSelected ? (
+                      <div className="mr-2 pt-3">
+                        <ImCheckmark />
+                      </div>
+                    ) : null}
+                    <input
+                      type="file"
+                      accept=".jpg, .jpeg, .png"
+                      className="roundButton fileInput"
+                      onChange={selectAvatar}
+                    />
+                  </form>
+                </div>
+                <div className="flex pt-3 justify-between">
+                  <p className="pr-3 translate-y-3">Your profile cover:</p>
+                  <form className="flex">
+                    {coverSelected ? (
+                      <div className="mr-2 pt-3">
+                        <ImCheckmark />
+                      </div>
+                    ) : null}
+                    <input
+                      type="file"
+                      accept="/image/*"
+                      className="roundButton fileInput"
+                      onChange={selectCover}
+                    />
+                  </form>
                 </div>
               </>
             ) : null}

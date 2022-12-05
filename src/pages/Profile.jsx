@@ -9,35 +9,34 @@ import Feed from "../components/Feed";
 import Page404 from "../components/Page404";
 
 export default function Profile(props) {
-  const { getTwots, isTheSameUser, handleFollow, isFollowing } = props;
+  const {
+    twots,
+    loadMoreTwots,
+    deleteTwotFromState,
+    noTwotsLeft,
+    isTheSameUser,
+    handleFollow,
+    isFollowing,
+    profileAvatar,
+    profileCover,
+  } = props;
   const { userId } = useParams();
   const [userExists, setUserExists] = useState(true);
-  const [twots, setTwots] = useState([]);
 
   const loadUserInfo = async function () {
     await getDoc(doc(database, "users", userId)).then((res) => {
       const getUserExists = res.exists();
       if (getUserExists) {
         setUserExists(true);
-        loadMoreTwots();
       } else {
         setUserExists(false);
       }
     });
   };
 
-  const loadMoreTwots = async function () {
-    const newTwots = await getTwots(userId);
-    setTwots(newTwots);
-  };
-
-  const deleteTwot = async function (deleteId) {
-    const updatedTwots = twots.filter((tw) => tw.id !== deleteId);
-    setTwots(updatedTwots);
-  };
-
   useEffect(() => {
     loadUserInfo();
+    loadMoreTwots();
   }, []);
 
   return (
@@ -49,13 +48,20 @@ export default function Profile(props) {
             isTheSameUser={isTheSameUser}
             handleFollow={handleFollow}
             isFollowing={isFollowing}
+            profileAvatar={profileAvatar}
+            profileCover={profileCover}
           />
           <Feed
             twots={twots}
             loadMoreTwots={loadMoreTwots}
-            deleteTwot={deleteTwot}
+            deleteTwotFromState={deleteTwotFromState}
+            emptyMessage={
+              isTheSameUser
+                ? "Post something to fill your feed."
+                : "This person hasn't twotted anything yet."
+            }
+            noTwotsLeft={noTwotsLeft}
             isTheSameUser={isTheSameUser}
-            emptyMessage={`This person hasn't twotted anything yet.`}
           />
         </>
       ) : (

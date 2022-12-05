@@ -11,8 +11,14 @@ function Divider() {
 const SingleTwootWithData = withTwootData(SingleTwoot);
 
 export default function Feed(props) {
-  const { twots, loadMoreTwots, deleteTwot, isTheSameUser, emptyMessage } =
-    props;
+  const {
+    twots,
+    loadMoreTwots,
+    deleteTwotFromState,
+    isTheSameUser,
+    emptyMessage,
+    noTwotsLeft,
+  } = props;
 
   return (
     <>
@@ -21,13 +27,24 @@ export default function Feed(props) {
           <div key={tw.id}>
             <SingleTwootWithData
               twoot={tw}
-              deleteTwot={deleteTwot}
               isTheSameUser={isTheSameUser}
+              deleteTwotFromState={deleteTwotFromState}
             />
             {i !== twots.length - 1 ? <Divider /> : null}
           </div>
         ))}
         {twots.length === 0 ? <NoTwots message={emptyMessage} /> : null}
+        {noTwotsLeft || twots.length === 0 ? null : (
+          <div>
+            <Divider />
+            <div
+              className="font-bold p-5 w-fit mx-auto cursor-pointer"
+              onClick={loadMoreTwots}
+            >
+              LOAD MORE
+            </div>
+          </div>
+        )}
       </div>
       <div className="h-10" />
     </>

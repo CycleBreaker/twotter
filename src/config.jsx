@@ -14,3 +14,5 @@ export const newUserBoilerplate = {
   following: [],
   likes: [],
 };
+
+export const twotsToDownloadAtOnce = 10;
