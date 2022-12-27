@@ -119,7 +119,6 @@ export default function withProfileData(Component) {
         (err) => console.log(err)
       );
       const unsubscribe = onSnapshot(doc(database, "users", userId), (doc) => {
-        console.log(doc);
         setProfileAvatar(doc.data().userpic);
         setProfileCover(doc.data().userBackground);
       });
