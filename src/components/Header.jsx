@@ -19,6 +19,11 @@ export default function Home() {
       <div className="w-full md:w-[800px] mx-auto flex justify-between">
         <p className="translate-y-[10px]">Twotter</p>
         <div className="flex">
+          <div className="roundButton ml-5">
+            <Link to={"/discover"}>
+              <ImEarth />
+            </Link>
+          </div>
           {currentUser === null ? null : (
             <>
               <div className="roundButton">
@@ -31,16 +36,11 @@ export default function Home() {
                   <FaUser />
                 </Link>
               </div>
+              <div className="roundButton ml-5" onClick={switchSettingsPopupOn}>
+                <IoSettingsSharp />
+              </div>
             </>
           )}
-          <div className="roundButton ml-5">
-            <Link to={"/discover"}>
-              <ImEarth />
-            </Link>
-          </div>
-          <div className="roundButton ml-5" onClick={switchSettingsPopupOn}>
-            <IoSettingsSharp />
-          </div>
         </div>
       </div>
     </div>
